@@ -1,4 +1,4 @@
-import { Checkbox, Col, Divider, Row } from 'antd';
+import { Checkbox, Col, Divider, Row, Tag } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React, { PureComponent } from 'react';
 
@@ -10,6 +10,8 @@ const doneTaskPtn = /^\[(x|X)\]/;
 const epicPtn = /^# /;
 
 type TProps = IIssueWithID & {
+  /** 진척율 */
+  progress?: number;
   handleChecked?(params: { e: CheckboxChangeEvent; id: string }): void;
 };
 
@@ -19,6 +21,7 @@ export default class TodoIssueItem extends PureComponent<TProps> {
 
     this.convertText = this.convertText.bind(this);
     this.haveCheckBox = this.haveCheckBox.bind(this);
+    this.getProgress = this.getProgress.bind(this);
   }
 
   private convertText() {
@@ -39,9 +42,39 @@ export default class TodoIssueItem extends PureComponent<TProps> {
     return [false, false];
   }
 
+  private getProgress() {
+    if (!!this.props.progress === false) {
+      return null;
+    }
+    const progress = (() => {
+      if (this.props.progress === undefined) {
+        return 0;
+      }
+      return this.props.progress;
+    })();
+    const color = (() => {
+      if (progress < 30) {
+        return ''; // none
+      }
+      if (progress < 60) {
+        return '#d04437'; // red
+      }
+      if (progress < 90) {
+        return '#f6c342'; // yellew
+      }
+      return '#14892c'; // green
+    })();
+    return (
+      <Tag color={color} style={{ marginLeft: '8px' }}>{`${
+        this.props.progress
+      } %`}</Tag>
+    );
+  }
+
   public render() {
     const offset = this.props.depth;
     const displayText = this.convertText();
+    const progress = this.getProgress();
     const text =
       this.props.type === EN_ISSUE_TYPE.EPIC ? (
         <h2>{displayText}</h2>
@@ -64,6 +97,7 @@ export default class TodoIssueItem extends PureComponent<TProps> {
         <Col offset={offset}>
           {checkBox}
           {text}
+          {progress}
         </Col>
         <Divider style={{ margin: '12px 0 4px' }} />
       </Row>
