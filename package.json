@@ -5,8 +5,11 @@
   "scripts": {
     "start:dev": "DEBUG=br:* razzle start",
     "build": "razzle build",
+    "now-build": "razzle build",
     "test": "razzle test --env=jsdom",
-    "start": "NODE_ENV=production node build/server.js"
+    "start": "NODE_ENV=production node build/server.js",
+    "now-start": "NODE_ENV=production node build/server.js",
+    "lint": "tslint -c tslint.json \"src/**/*.ts*\""
   },
   "dependencies": {
     "@jaredpalmer/after": "^1.3.1",
@@ -60,5 +63,8 @@
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}"
     ]
+  },
+  "engines": {
+    "node": ">=10.15"
   }
 }

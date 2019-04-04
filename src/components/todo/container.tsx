@@ -1,3 +1,4 @@
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 
@@ -15,6 +16,7 @@ class TodoContainer extends Component {
     this.store = new TodoStore({ issues: [] });
 
     this.addIssue = this.addIssue.bind(this);
+    this.handleChecked = this.handleChecked.bind(this);
     this.getIssueList = this.getIssueList.bind(this);
   }
 
@@ -22,8 +24,14 @@ class TodoContainer extends Component {
     this.store.addIssue(data);
   }
 
+  protected handleChecked(params: { e: CheckboxChangeEvent; id: string }) {
+    this.store.checkedIssue(params.id);
+  }
+
   private getIssueList() {
-    return this.store.Issues.map(mv => <TodoIssueItem key={mv.id} {...mv} />);
+    return this.store.Issues.map(mv => (
+      <TodoIssueItem key={mv.id} handleChecked={this.handleChecked} {...mv} />
+    ));
   }
 
   public render() {
