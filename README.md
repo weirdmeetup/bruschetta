@@ -1,5 +1,7 @@
 # Bruschetta
 
+[![Build Status](https://dev.azure.com/totuworld/bruschetta/_apis/build/status/weirdmeetup.bruschetta?branchName=master)](https://dev.azure.com/totuworld/bruschetta)
+
 todo app을 만들어본다.
 
 ## 작업환경
