@@ -2,8 +2,8 @@ import { Checkbox, Col, Divider, Row } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React, { PureComponent } from 'react';
 
-import { IIssueWithID } from '../interface/IIssue';
 import { EN_ISSUE_TYPE } from '../interface/EN_ISSUE_TYPE';
+import { IIssueWithID } from '../interface/IIssue';
 
 const taskPtn = /^\[( |x|X)\]/;
 const doneTaskPtn = /^\[(x|X)\]/;
@@ -41,11 +41,6 @@ export default class TodoIssueItem extends PureComponent<TProps> {
 
   public render() {
     const offset = this.props.depth;
-    // text 처리
-    // 1. type이 epic이면 h 태그로 넣는다.
-    // 2. type이 task 이면 체크 박스를 넣는다.
-    // 2-1. 체크박스는 [x], [X]이면 기 체크된 상태로 변경한다.
-    // 2-2. 체크박스를 클릭하면 체크 상태가 변경된다.
     const displayText = this.convertText();
     const text =
       this.props.type === EN_ISSUE_TYPE.EPIC ? (

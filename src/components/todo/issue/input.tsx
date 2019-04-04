@@ -42,8 +42,13 @@ function onInputChange({
 }) {
   const current = event.currentTarget.value;
   const updateState = produce(old, draft => {
+    const type = getType(current);
     draft.text = current;
-    draft.type = getType(current);
+    draft.type = type;
+    if (type === EN_ISSUE_TYPE.EPIC) {
+      draft.currentDepth = 0;
+      draft.depth = 0;
+    }
   });
   setState(updateState);
 }
