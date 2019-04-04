@@ -3,6 +3,7 @@ import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React, { PureComponent } from 'react';
 
 import { IIssueWithID } from '../interface/IIssue';
+import { EN_ISSUE_TYPE } from '../interface/EN_ISSUE_TYPE';
 
 const taskPtn = /^\[( |x|X)\]/;
 const doneTaskPtn = /^\[(x|X)\]/;
@@ -46,6 +47,12 @@ export default class TodoIssueItem extends PureComponent<TProps> {
     // 2-1. 체크박스는 [x], [X]이면 기 체크된 상태로 변경한다.
     // 2-2. 체크박스를 클릭하면 체크 상태가 변경된다.
     const displayText = this.convertText();
+    const text =
+      this.props.type === EN_ISSUE_TYPE.EPIC ? (
+        <h2>{displayText}</h2>
+      ) : (
+        displayText
+      );
     const [haveCheckBox, checkBoxValue] = this.haveCheckBox();
     const checkBox = haveCheckBox ? (
       <Checkbox
@@ -61,7 +68,7 @@ export default class TodoIssueItem extends PureComponent<TProps> {
       <Row style={{ marginTop: '8px' }}>
         <Col offset={offset}>
           {checkBox}
-          {displayText}
+          {text}
         </Col>
         <Divider style={{ margin: '12px 0 4px' }} />
       </Row>
