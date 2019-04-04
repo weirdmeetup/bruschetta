@@ -1,3 +1,4 @@
+import { produce } from 'immer';
 import { action, observable, runInAction } from 'mobx';
 
 import { IIssue, IIssueWithID } from '../interface/IIssue';
@@ -21,6 +22,27 @@ export class TodoStore {
       this.issues.push(updateIssue);
       return updateIssue;
     });
+  }
+
+  @action
+  public checkedIssue(id: string) {
+    const findIssueIdx = this.issues.findIndex(fv => fv.id === id);
+    // 데이터가 있다.
+    if (findIssueIdx >= 0) {
+      return runInAction(() => {
+        const updateIssue = { ...this.issues[findIssueIdx] };
+        const isChecked = /^\[(x|X)\]/i.test(updateIssue.text);
+        const oldStr = updateIssue.text;
+        if (isChecked) {
+          updateIssue.text = oldStr.replace(/^\[(x|X)\]/i, '[ ]');
+        }
+        if (!isChecked) {
+          updateIssue.text = oldStr.replace(/^\[ \]/i, '[x]');
+        }
+        return this.modifyIssue(updateIssue);
+      });
+    }
+    return this.issues;
   }
 
   @action
