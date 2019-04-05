@@ -32,11 +32,13 @@ export function calProgress(data: IIssueWithID[]) {
     // epic은 일단 등록하고 본다.
     if (cur.type === EN_ISSUE_TYPE.EPIC) {
       if (acc.has(accKey) === false) {
-        acc.set(accKey, [{ id: cur.id, idx, depth: cur.depth }]);
+        acc.set(accKey, [
+          { id: cur.id, idx, depth: cur.depth, type: EN_ISSUE_TYPE.EPIC }
+        ]);
       } else {
         const updateAccData = [
           ...acc.get(accKey)!,
-          { id: cur.id, idx, depth: cur.depth }
+          { id: cur.id, idx, depth: cur.depth, type: EN_ISSUE_TYPE.EPIC }
         ];
         acc.set(accKey, updateAccData);
       }
@@ -44,7 +46,7 @@ export function calProgress(data: IIssueWithID[]) {
 
     // vector 변경이 있는데, 아무런 값이 설정되지 않은 경우
     if (vector !== 0 && acc.has(accKey) === false) {
-      acc.set(accKey, [{ id: cur.id, idx, depth: cur.depth }]);
+      acc.set(accKey, [{ id: cur.id, idx, depth: cur.depth, type: cur.type }]);
     }
 
     if (vector < 0) {
@@ -52,7 +54,12 @@ export function calProgress(data: IIssueWithID[]) {
       // predata가 task를 가질 수 있게 된다.
       if (acc.has(preDataAccKey) === false) {
         acc.set(preDataAccKey, [
-          { id: preData.id, idx: idx - 1, depth: preData.depth }
+          {
+            id: preData.id,
+            idx: idx - 1,
+            depth: preData.depth,
+            type: preData.type
+          }
         ]);
       } else {
         // 기존에 정보가 있을 수 있다.
@@ -62,7 +69,12 @@ export function calProgress(data: IIssueWithID[]) {
         if (preDataFromAcc < 0) {
           const updateAccData = [
             ...acc.get(preDataAccKey)!,
-            { id: preData.id, idx: idx - 1, depth: preData.depth }
+            {
+              id: preData.id,
+              idx: idx - 1,
+              depth: preData.depth,
+              type: preData.type
+            }
           ];
           acc.set(preDataAccKey, updateAccData);
         }
@@ -74,7 +86,7 @@ export function calProgress(data: IIssueWithID[]) {
     if (vector > 0) {
       const updateAccData = [
         ...acc.get(accKey)!,
-        { id: cur.id, idx, depth: cur.depth }
+        { id: cur.id, idx, depth: cur.depth, type: cur.type }
       ];
       acc.set(accKey, updateAccData);
 
@@ -94,9 +106,22 @@ export function calProgress(data: IIssueWithID[]) {
       updateProgress(progress, accData, cur);
     }
 
+    // depth 0이며 task
+    if (cur.depth === 0 && cur.type === EN_ISSUE_TYPE.TASK && acc.has('0')) {
+      // epic 이 기존에 있는지 확인한다.
+      const accDataArr = acc
+        .get('0')!
+        .filter(fv => fv.type === EN_ISSUE_TYPE.EPIC)
+        .sort((a, b) => b.idx - a.idx);
+      if (accDataArr.length > 0) {
+        log(cur.id);
+        updateProgress(progress, accDataArr[0], cur);
+      }
+    }
+
     return acc;
     // tslint:disable-next-line: align
-  }, new Map<string, Array<{ id: string; idx: number; depth: number }>>());
+  }, new Map<string, Array<{ id: string; idx: number; depth: number; type: EN_ISSUE_TYPE }>>());
   return progress;
 }
 function updateProgress(
