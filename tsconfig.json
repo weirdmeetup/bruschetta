@@ -33,7 +33,8 @@
     "webpack",
     "jest",
     "razzle.config.js",
-    "dist.js"
+    "dist.js",
+    "./src/**/*.test.ts"
   ],
   "types": ["typePatches", "node", "webpack-env"]
 }
