@@ -2,9 +2,11 @@ import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 
+import { isEmpty } from '../../utils/util';
 import { IIssue } from './interface/IIssue';
 import { TodoIssueInput } from './issue/input';
 import TodoIssueItem from './issue/item';
+import { calProgress } from './services/cal_progress';
 import { TodoStore } from './store';
 
 @observer
@@ -29,9 +31,26 @@ class TodoContainer extends Component {
   }
 
   private getIssueList() {
-    return this.store.Issues.map(mv => (
-      <TodoIssueItem key={mv.id} handleChecked={this.handleChecked} {...mv} />
-    ));
+    if (isEmpty(this.store) || isEmpty(this.store.Issues)) {
+      return null;
+    }
+    const progressMap = calProgress([...this.store.Issues]);
+    return this.store.Issues.map(mv => {
+      const progress = progressMap.get(mv.id);
+      const progressValue =
+        !!progress && progress.total > 0
+          ? Math.floor((progress.done / progress.total) * 100)
+          : undefined;
+      console.log(progressValue);
+      return (
+        <TodoIssueItem
+          key={mv.id}
+          handleChecked={this.handleChecked}
+          progress={progressValue}
+          {...mv}
+        />
+      );
+    });
   }
 
   public render() {

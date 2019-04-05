@@ -2,6 +2,7 @@ import { Col, Icon, Input, Row } from 'antd';
 import { produce } from 'immer';
 import React, { FunctionComponent, useState } from 'react';
 
+import { isEmpty } from '../../../utils/util';
 import { EN_ISSUE_TYPE } from '../interface/EN_ISSUE_TYPE';
 import { IIssue } from '../interface/IIssue';
 
@@ -42,20 +43,26 @@ function onInputChange({
 }) {
   const current = event.currentTarget.value;
   const updateState = produce(old, draft => {
+    const type = getType(current);
     draft.text = current;
-    draft.type = getType(current);
+    draft.type = type;
+    if (type === EN_ISSUE_TYPE.EPIC) {
+      draft.currentDepth = 0;
+      draft.depth = 0;
+    }
   });
   setState(updateState);
 }
 
-function getCheckBox(old: IStates) {
-  if (old.type !== EN_ISSUE_TYPE.TASK) {
-    return (
-      <Icon type={old.type === EN_ISSUE_TYPE.EPIC ? 'fire' : 'ellipsis'} />
-    );
+function getCheckBox({ type, text }: IStates) {
+  if (isEmpty(type)) {
+    return <Icon type="border" />;
+  }
+  if (type !== EN_ISSUE_TYPE.TASK) {
+    return <Icon type={type === EN_ISSUE_TYPE.EPIC ? 'fire' : 'ellipsis'} />;
   }
   // text start가 x가 있는지 확인하자.
-  if (/^\[(x|X)\]/.test(old.text)) {
+  if (/^\[(x|X)\]/.test(text)) {
     return <Icon type="check-square" />;
   }
   return <Icon type="border" />;
@@ -73,7 +80,7 @@ export const TodoIssueInput: FunctionComponent<IProps> = props => {
     type: EN_ISSUE_TYPE.DESC,
     currentDepth: 0
   });
-  const checkBox = getCheckBox(old);
+  const checkBox = getCheckBox({ ...old });
   return (
     <div>
       <Row type="flex" align="middle">
