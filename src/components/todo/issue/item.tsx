@@ -2,6 +2,7 @@ import { Checkbox, Col, Divider, Row, Tag } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React, { PureComponent } from 'react';
 
+import { isEmpty } from '../../../utils/util';
 import { EN_ISSUE_TYPE } from '../interface/EN_ISSUE_TYPE';
 import { IIssueWithID } from '../interface/IIssue';
 
@@ -43,7 +44,10 @@ export default class TodoIssueItem extends PureComponent<TProps> {
   }
 
   private getProgress() {
-    if (!!this.props.progress === false) {
+    if (
+      isEmpty(this.props.progress) ||
+      this.props.type === EN_ISSUE_TYPE.DESC
+    ) {
       return null;
     }
     const progress = (() => {
