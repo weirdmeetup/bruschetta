@@ -11,7 +11,7 @@ interface IProps {
   /** 입력 완료 액션 처리 */
   handleDone?(data: IIssue): IIssueWithID & { upsideDepth: number } | null;
   /** tab을 사용해서 depth */
-  handleChangeDepth?(): void;
+  handleChangeDepth?(depth: number): void;
   /** 위/아래로 이동했을 때 사용하는 메서드 */
   handleGoUpsideOrDownside?(args: {
     data: IIssue;
@@ -159,6 +159,9 @@ export const TodoIssueInput: FunctionComponent<IProps> = props => {
                   draft.depth -= 1;
                 });
                 setState(updateState);
+                if (!!props.handleChangeDepth) {
+                  props.handleChangeDepth(updateState.depth);
+                }
                 return;
               }
               // tab 키 입력 시 한 depth 넣어야함.
@@ -166,9 +169,16 @@ export const TodoIssueInput: FunctionComponent<IProps> = props => {
                 event.preventDefault();
                 const updateState = produce(old, draft => {
                   // 깊이를 계속 가지고 들어갈 순 없다. 바로 위 depth에서 +1 한 수준으로 유지하자.
-                  draft.depth = draft.currentDepth + 1;
+                  let depth = draft.depth + 1;
+                  if (depth > draft.currentDepth + 1) {
+                    depth = draft.currentDepth + 1;
+                  }
+                  draft.depth = depth;
                 });
                 setState(updateState);
+                if (!!props.handleChangeDepth) {
+                  props.handleChangeDepth(updateState.depth);
+                }
                 return;
               }
             }}
