@@ -4,14 +4,19 @@ import React, { FunctionComponent, useState } from 'react';
 
 import { isEmpty } from '../../../utils/util';
 import { EN_ISSUE_TYPE } from '../interface/EN_ISSUE_TYPE';
-import { IIssue } from '../interface/IIssue';
+import { IIssue, IIssueWithID } from '../interface/IIssue';
 
 interface IProps {
   upsideDepth: number;
   /** 입력 완료 액션 처리 */
-  handleDone?(data: IIssue): void;
+  handleDone?(data: IIssue): IIssueWithID & { upsideDepth: number } | null;
   /** tab을 사용해서 depth */
   handleChangeDepth?(): void;
+  /** 위/아래로 이동했을 때 사용하는 메서드 */
+  handleGoUpsideOrDownside?(args: {
+    data: IIssue;
+    upside: boolean;
+  }): IIssueWithID & { upsideDepth: number } | null;
 }
 
 interface IStates {
@@ -92,23 +97,53 @@ export const TodoIssueInput: FunctionComponent<IProps> = props => {
             placeholder="To-do"
             value={old.text}
             onKeyDown={event => {
+              // 위/아래 화살표 입력 시
+              if (
+                (event.keyCode === 38 || event.keyCode === 40) &&
+                !!props.handleGoUpsideOrDownside
+              ) {
+                const data = props.handleGoUpsideOrDownside({
+                  data: old,
+                  upside: event.keyCode === 38
+                });
+                if (data !== null) {
+                  const updateState = produce(old, draft => {
+                    draft.text = data.text;
+                    draft.currentDepth = data.upsideDepth;
+                    draft.depth = data.depth;
+                    draft.type = data.type;
+                  });
+                  setState(updateState);
+                }
+                return;
+              }
               // enter key 입력 시 입력 완료 처리
               if (event.keyCode === 13) {
                 if (!!props.handleDone && old.text.length > 0) {
-                  props.handleDone({ ...old });
+                  const data = props.handleDone({ ...old });
+                  if (data === null) {
+                    const renewState = produce(old, draft => {
+                      // text를 삭제한다.
+                      draft.text = '';
+                      // task 일때만 앞에 3글자를 살린다.
+                      if (old.type === EN_ISSUE_TYPE.TASK) {
+                        draft.text = old.text.slice(0, 3);
+                      }
+                      if (draft.currentDepth < old.depth) {
+                        draft.currentDepth = old.depth;
+                      }
+                      if (draft.depth === 0) {
+                        draft.currentDepth = 0;
+                      }
+                    });
+                    setState(renewState);
+                    return;
+                  }
                   const updateState = produce(old, draft => {
-                    // text를 삭제한다.
-                    draft.text = '';
-                    // task 일때만 앞에 3글자를 살린다.
-                    if (old.type === EN_ISSUE_TYPE.TASK) {
-                      draft.text = old.text.slice(0, 3);
-                    }
-                    if (draft.currentDepth < old.depth) {
-                      draft.currentDepth = old.depth;
-                    }
-                    if (draft.depth === 0) {
-                      draft.currentDepth = 0;
-                    }
+                    draft.text = data.text;
+                    draft.currentDepth = data.upsideDepth;
+                    draft.depth = data.depth;
+                    draft.type = data.type;
                   });
                   setState(updateState);
                 }
