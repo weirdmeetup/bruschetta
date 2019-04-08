@@ -29,6 +29,7 @@ class TodoContainer extends Component<{}, IStates> {
     this.store = new TodoStore({ issues: [] });
 
     this.addIssue = this.addIssue.bind(this);
+    this.changeChildDepth = this.changeChildDepth.bind(this);
     this.handleChecked = this.handleChecked.bind(this);
     this.handleGoUpsideOrDownside = this.handleGoUpsideOrDownside.bind(this);
     this.getIssueList = this.getIssueList.bind(this);
@@ -59,6 +60,32 @@ class TodoContainer extends Component<{}, IStates> {
     }
     this.store.addIssue(data);
     return null;
+  }
+
+  protected changeChildDepth(depth: number) {
+    // child depth 수정 필요한지 확인한다.
+    let nextIdx = this.state.inputIdx + 1;
+    // store에 저장된 정보 중 중앙 어딘가에 위치해 있을 때!
+    if (nextIdx < this.store.Issues.length) {
+      const oldData = this.store.Issues[this.state.inputIdx];
+      const changeDepth = depth + 1;
+      // depth에 변화가 있을 때!
+      if (oldData.depth !== depth) {
+        while (nextIdx < this.store.Issues.length) {
+          const nextData = this.store.Issues[nextIdx];
+          if (
+            nextData.depth === oldData.depth ||
+            nextData.depth < oldData.depth
+          ) {
+            break;
+          }
+          this.store.modifyIssue({ ...nextData, depth: changeDepth });
+          nextIdx += 1;
+        }
+        // 자신의 데이터도 변경한다.
+        this.store.modifyIssue({ ...oldData, depth });
+      }
+    }
   }
 
   protected handleChecked(params: { e: CheckboxChangeEvent; id: string }) {
@@ -116,6 +143,7 @@ class TodoContainer extends Component<{}, IStates> {
           key="unique_input"
           upsideDepth={0}
           handleDone={this.addIssue}
+          handleChangeDepth={this.changeChildDepth}
         />
       );
     }
@@ -142,6 +170,7 @@ class TodoContainer extends Component<{}, IStates> {
             upsideDepth={upsideDepth}
             handleDone={this.addIssue}
             handleGoUpsideOrDownside={this.handleGoUpsideOrDownside}
+            handleChangeDepth={this.changeChildDepth}
           />
         );
       }
@@ -162,6 +191,7 @@ class TodoContainer extends Component<{}, IStates> {
           upsideDepth={0}
           handleDone={this.addIssue}
           handleGoUpsideOrDownside={this.handleGoUpsideOrDownside}
+          handleChangeDepth={this.changeChildDepth}
         />
       );
     }
