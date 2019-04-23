@@ -9,6 +9,7 @@ import { IIssueWithID } from '../interface/IIssue';
 const taskPtn = /^\[( |x|X)\]/;
 const doneTaskPtn = /^\[(x|X)\]/;
 const epicPtn = /^# /;
+const markdownLinkPtn = /\[.*?\]\(.*?\)/gi;
 
 type TProps = IIssueWithID & {
   /** 진척율 */
@@ -20,19 +21,40 @@ export default class TodoIssueItem extends PureComponent<TProps> {
   constructor(props: IIssueWithID) {
     super(props);
 
-    this.convertText = this.convertText.bind(this);
+    this.replaceTextToEmptyStr = this.replaceTextToEmptyStr.bind(this);
     this.haveCheckBox = this.haveCheckBox.bind(this);
     this.getProgress = this.getProgress.bind(this);
   }
 
-  private convertText() {
-    if (epicPtn.test(this.props.text)) {
-      return this.props.text.replace(epicPtn, '');
+  /** 텍스트에 epic, task 패턴과 매칭될 시 빈 문자열로 대치한다. */
+  private replaceTextToEmptyStr(text: string) {
+    let draft = text;
+    if (epicPtn.test(text)) {
+      draft = draft.replace(epicPtn, '');
     }
-    if (taskPtn.test(this.props.text)) {
-      return this.props.text.replace(taskPtn, '');
+    if (taskPtn.test(text)) {
+      draft = draft.replace(taskPtn, '');
     }
-    return this.props.text;
+    // 링크가 검출되는가?
+    if (markdownLinkPtn.test(draft)) {
+      // markdownLinkPtn으로 match 해세 패턴 관련한 데이터를 모두 뽑아낸다.
+      const matches = draft.match(markdownLinkPtn);
+      let replaceText = draft.replace(markdownLinkPtn, '!yo_lnk!');
+      const returnArr: Array<string | React.ReactElement> = [];
+      let lastIdx = 0;
+      matches!.forEach(fv => {
+        const splitText = /\[(.*?)\]\((.*?)\)/gi.exec(fv);
+        if (!!splitText) {
+          const findIndex = replaceText.indexOf('!yo_lnk!');
+          returnArr.push(replaceText.slice(lastIdx, findIndex));
+          returnArr.push(<a href={`${splitText![2]}`}>{splitText![1]}</a>);
+          lastIdx = findIndex + 8;
+          replaceText = replaceText.replace('!yo_lnk!', '________');
+        }
+      });
+      return returnArr;
+    }
+    return draft;
   }
 
   /** [checkbox 보유 여부, checkbox 상태] */
@@ -77,7 +99,7 @@ export default class TodoIssueItem extends PureComponent<TProps> {
 
   public render() {
     const offset = this.props.depth;
-    const displayText = this.convertText();
+    const displayText = this.replaceTextToEmptyStr(this.props.text);
     const progress = this.getProgress();
     const text =
       this.props.type === EN_ISSUE_TYPE.EPIC ? (
